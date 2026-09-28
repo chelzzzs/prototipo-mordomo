@@ -1,0 +1,767 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Mordomo Financeiro</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,600&family=Figtree:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: phone frame centred beside a flow guide on desktop; the app fills the viewport on phones. */
+:root{
+  --ink:#0F1219;
+  --surface:#171C26;
+  --raised:#202735;
+  --line:#2B3343;
+  --fg:#EEEAE1;
+  --muted:#A3AABA;
+  --faint:#6F7788;
+  --brass:#D8B36C;
+  --brass-ink:#1C1609;
+  --sage:#88CBA8;
+  --coral:#F29479;
+  --sky:#8AAFE8;
+  --f-display:"Fraunces",Georgia,"Times New Roman",serif;
+  --f-body:"Figtree",system-ui,-apple-system,"Segoe UI",sans-serif;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%}
+body{margin:0;background:var(--ink);color:var(--fg);font:15px/1.45 var(--f-body);-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;background:none;border:0;padding:0;cursor:pointer}
+input,select{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--brass);outline-offset:2px;border-radius:8px}
+.num{font-variant-numeric:tabular-nums}
+svg.i{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+svg.i.sm{width:18px;height:18px}
+svg.i.xs{width:14px;height:14px}
+
+.stage{display:flex;gap:48px;justify-content:center;align-items:flex-start;padding:32px 16px;min-height:100%}
+.guide{width:300px;padding-top:12px}
+.guide h1{font:600 26px/1.15 var(--f-display);margin:0 0 6px}
+.guide p{color:var(--muted);margin:0 0 22px;font-size:14px}
+.guide h2{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--brass);margin:22px 0 8px}
+.guide ol{list-style:none;margin:0;padding:0;display:grid;gap:2px}
+.guide a{display:flex;gap:10px;align-items:baseline;padding:7px 10px;border-radius:10px;color:var(--fg);text-decoration:none;font-size:14px}
+.guide a span{color:var(--faint);font-size:12px;width:18px}
+.guide a:hover{background:var(--surface)}
+.guide a[aria-current="true"]{background:var(--raised);color:var(--brass)}
+
+.phone{width:390px;height:844px;border-radius:52px;background:var(--surface);border:10px solid #06080C;box-shadow:0 30px 80px rgba(0,0,0,.55),0 0 0 1px #2a2f3a;position:relative;overflow:hidden;flex:none}
+@media (max-width:780px){
+  .guide{display:none}
+  .stage{padding:0;display:block;height:100%}
+  .phone{width:100%;height:100%;border:0;border-radius:0;box-shadow:none}
+}
+
+.screen{position:absolute;inset:0;display:flex;flex-direction:column;background:var(--surface)}
+.screen[hidden]{display:none!important}
+.status{height:46px;flex:none;display:flex;align-items:center;justify-content:space-between;padding:0 26px 0 30px;font-weight:600;font-size:15px}
+.status .ic{display:flex;gap:6px;align-items:center}
+.status .ic i{display:block;background:var(--fg);border-radius:2px}
+.scroll{flex:1;overflow-y:auto;padding:4px 20px 28px;display:flex;flex-direction:column;gap:18px;scrollbar-width:none}
+.scroll::-webkit-scrollbar{display:none}
+
+.topbar{display:flex;align-items:center;gap:12px;min-height:44px}
+.topbar h1{font:600 17px/1.2 var(--f-body);margin:0;flex:1}
+.iconbtn{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:var(--raised);position:relative}
+.iconbtn .dot{position:absolute;top:9px;right:10px;width:8px;height:8px;border-radius:50%;background:var(--coral);box-shadow:0 0 0 2px var(--raised)}
+.avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,#3a4458,#262d3b);display:grid;place-items:center;font-weight:700;font-size:14px;color:var(--brass)}
+
+.eyebrow{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:600}
+.display{font:600 30px/1.12 var(--f-display);margin:0;text-wrap:balance}
+.lead{color:var(--muted);margin:0}
+.h2{font-size:13px;font-weight:600;color:var(--muted);letter-spacing:.02em;margin:0;display:flex;justify-content:space-between;align-items:baseline}
+.h2 a,.link{color:var(--brass);text-decoration:none;font-weight:600;font-size:13px}
+
+.card{background:var(--raised);border-radius:20px;padding:18px}
+.card.flat{background:transparent;border:1px solid var(--line)}
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;height:52px;border-radius:16px;font-weight:600;font-size:16px;width:100%}
+.btn.primary{background:var(--brass);color:var(--brass-ink)}
+.btn.secondary{background:var(--raised);color:var(--fg)}
+.btn.ghost{color:var(--muted);height:44px;font-size:15px}
+.btn.danger{background:#3a2320;color:var(--coral)}
+.stack{display:flex;flex-direction:column;gap:10px}
+.row{display:flex;align-items:center;gap:12px}
+.grow{flex:1;min-width:0}
+.chip{display:inline-flex;align-items:center;gap:6px;height:28px;padding:0 11px;border-radius:99px;font-size:12px;font-weight:600;background:var(--raised);color:var(--muted);white-space:nowrap}
+.chip.alert{background:rgba(242,148,121,.14);color:var(--coral)}
+.chip.good{background:rgba(136,203,168,.14);color:var(--sage)}
+.chip.brass{background:rgba(216,179,108,.15);color:var(--brass)}
+.chip.on{background:var(--fg);color:var(--ink)}
+.chips{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;margin:0 -20px;padding:0 20px}
+
+.mordomo{background:linear-gradient(160deg,rgba(216,179,108,.16),rgba(216,179,108,.04));border:1px solid rgba(216,179,108,.28);border-radius:20px;padding:16px 16px 14px}
+.mordomo .who{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.seal{width:34px;height:34px;border-radius:50%;background:var(--brass);color:var(--brass-ink);display:grid;place-items:center;flex:none}
+.mordomo .who b{font-size:14px}
+.mordomo .who small{display:block;color:var(--muted);font-size:12px}
+.mordomo p{margin:0;font:400 16px/1.4 var(--f-display)}
+
+.bar{height:8px;background:var(--line);border-radius:99px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--brass);border-radius:99px}
+
+.list{display:flex;flex-direction:column}
+.item{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--line)}
+.item:last-child{border-bottom:0}
+.cat{width:40px;height:40px;border-radius:13px;display:grid;place-items:center;flex:none;background:var(--line)}
+.item .t{font-weight:600;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.item .s{color:var(--muted);font-size:12.5px}
+.item .v{font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+.item .v.in{color:var(--sage)}
+
+.tabbar{flex:none;display:grid;grid-template-columns:repeat(5,1fr);padding:8px 8px calc(20px + env(safe-area-inset-bottom,0px));border-top:1px solid var(--line);background:var(--surface)}
+.tabbar button{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:11px;font-weight:600;color:var(--faint);padding:6px 0}
+.tabbar button[aria-current="page"]{color:var(--brass)}
+
+.steps{display:flex;gap:6px}
+.steps i{flex:1;height:4px;border-radius:99px;background:var(--line)}
+.steps i.on{background:var(--brass)}
+
+.field{display:flex;flex-direction:column;gap:6px;min-width:0}
+.field label{font-size:13px;color:var(--muted);font-weight:500}
+.field .in{height:52px;border-radius:14px;background:var(--raised);border:1px solid var(--line);padding:0 14px;display:flex;align-items:center;gap:10px}
+.field .in input{background:none;border:0;outline:0;flex:1;min-width:0;width:100%;font-size:16px}
+.field .hint{font-size:12px;color:var(--sage)}
+.check{display:flex;gap:10px;align-items:flex-start;font-size:13.5px;color:var(--muted)}
+.check .box{width:22px;height:22px;border-radius:7px;background:var(--brass);color:var(--brass-ink);display:grid;place-items:center;flex:none}
+
+.safe{display:flex;gap:12px;align-items:flex-start}
+.safe .ico{width:34px;height:34px;border-radius:11px;background:rgba(136,203,168,.12);color:var(--sage);display:grid;place-items:center;flex:none}
+.safe b{display:block;font-size:14px}
+.safe span{font-size:13px;color:var(--muted)}
+
+.banks{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.bank{background:var(--raised);border-radius:16px;padding:14px 8px 12px;display:flex;flex-direction:column;align-items:center;gap:8px;font-size:12.5px;font-weight:600;border:1.5px solid transparent}
+.bank .lg{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;font-weight:700;font-size:15px;color:#fff}
+.bank[aria-pressed="true"]{border-color:var(--brass)}
+
+.kpis{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.kpi{background:var(--raised);border-radius:18px;padding:14px}
+.kpi .l{font-size:12px;color:var(--muted)}
+.kpi .n{font:600 22px/1.2 var(--f-body);font-variant-numeric:tabular-nums;margin-top:4px}
+.kpi .d{font-size:12px;margin-top:2px}
+.up{color:var(--sage)}.down{color:var(--coral)}
+
+.seg{display:grid;grid-template-columns:repeat(3,1fr);background:var(--raised);border-radius:12px;padding:3px}
+.seg button{height:34px;border-radius:9px;font-size:13px;font-weight:600;color:var(--muted)}
+.seg button[aria-pressed="true"]{background:var(--line);color:var(--fg)}
+
+.chart text{fill:var(--muted);font:500 11px var(--f-body)}
+.legend{display:flex;gap:14px;font-size:12px;color:var(--muted);flex-wrap:wrap}
+.legend i{display:inline-block;width:10px;height:10px;border-radius:3px;margin-right:6px;vertical-align:-1px}
+
+.bubble{max-width:86%;padding:12px 14px;border-radius:18px;font-size:14.5px}
+.bubble.me{align-self:flex-end;background:var(--line);border-bottom-right-radius:6px}
+.bubble.bot{align-self:flex-start;background:rgba(216,179,108,.12);border:1px solid rgba(216,179,108,.25);border-bottom-left-radius:6px;font-family:var(--f-display);font-size:15.5px}
+.composer{flex:none;display:flex;gap:10px;align-items:center;padding:10px 16px;border-top:1px solid var(--line)}
+.composer .in{flex:1;height:46px;border-radius:99px;background:var(--raised);display:flex;align-items:center;padding:0 16px;color:var(--faint);font-size:14.5px}
+.composer .send{width:46px;height:46px;border-radius:50%;background:var(--brass);color:var(--brass-ink);display:grid;place-items:center}
+
+.insight{border-radius:20px;background:var(--raised);padding:16px;display:flex;flex-direction:column;gap:10px}
+.insight h3{margin:0;font:600 17px/1.3 var(--f-display)}
+.insight .why{font-size:13px;color:var(--muted);border-left:2px solid var(--brass);padding-left:10px}
+.insight .acts{display:flex;gap:8px;align-items:center}
+.mini{height:34px;border-radius:10px;padding:0 12px;font-size:13px;font-weight:600;background:var(--line)}
+.mini.b{background:var(--brass);color:var(--brass-ink)}
+
+.menu{display:flex;flex-direction:column;background:var(--raised);border-radius:20px;padding:4px 16px}
+.menu button,.menu .mi{display:flex;align-items:center;gap:12px;padding:14px 0;border-bottom:1px solid var(--line);text-align:left;width:100%}
+.menu > :last-child{border-bottom:0}
+.menu .mi-t{flex:1;min-width:0}
+.menu .mi-t b{display:block;font-weight:600;font-size:15px}
+.menu .mi-t span{font-size:12.5px;color:var(--muted)}
+
+.valid{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--line);align-items:flex-start}
+.valid:last-child{border-bottom:0}
+.valid .ln{font-size:12px;color:var(--faint);width:76px;flex:none;padding-top:2px;white-space:nowrap}
+.valid b{display:block;font-size:14px}
+.valid span{font-size:13px;color:var(--muted)}
+.valid code{font-family:ui-monospace,Consolas,monospace;font-size:12.5px;background:var(--line);padding:1px 5px;border-radius:5px;color:var(--fg)}
+
+.stepper{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--muted)}
+.stepper b{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-size:12px;background:var(--line)}
+.stepper .done b{background:var(--sage);color:var(--ink)}
+.stepper .cur b{background:var(--brass);color:var(--brass-ink)}
+.stepper .cur{color:var(--fg);font-weight:600}
+.stepper hr{flex:1;border:0;border-top:1px solid var(--line);margin:0}
+
+.toast{position:absolute;left:16px;right:16px;bottom:96px;background:var(--fg);color:var(--ink);border-radius:16px;padding:14px 16px;display:flex;align-items:center;gap:12px;font-weight:600;font-size:14.5px;box-shadow:0 12px 30px rgba(0,0,0,.4);z-index:5}
+.toast button{margin-left:auto;color:#6b4f12;font-weight:700}
+.sheet-bg{position:absolute;inset:0;background:rgba(5,7,10,.62);z-index:6;display:flex;align-items:flex-end}
+.sheet{background:var(--surface);width:100%;border-radius:28px 28px 0 0;padding:12px 20px 34px;display:flex;flex-direction:column;gap:14px;border-top:1px solid var(--line)}
+.sheet .grab{width:40px;height:5px;border-radius:99px;background:var(--line);align-self:center}
+.sheet h2{font:600 22px/1.2 var(--f-display);margin:4px 0 0}
+
+.hero-mark{width:96px;height:96px;border-radius:30px;background:var(--brass);color:var(--brass-ink);display:grid;place-items:center;box-shadow:0 18px 50px rgba(216,179,108,.25)}
+.hero-mark svg{width:54px;height:54px;stroke-width:1.6}
+.promises{display:flex;flex-direction:column;gap:12px}
+.promises div{display:flex;gap:12px;align-items:center;font-size:15px}
+.promises svg{color:var(--sage)}
+
+.opt{display:flex;align-items:center;gap:12px;padding:14px;border-radius:16px;background:var(--raised);border:1.5px solid transparent;text-align:left;width:100%}
+.opt[aria-pressed="true"]{border-color:var(--brass)}
+.opt .r{width:20px;height:20px;border-radius:50%;border:2px solid var(--faint);flex:none}
+.opt[aria-pressed="true"] .r{border:6px solid var(--brass)}
+@media (prefers-reduced-motion:no-preference){.screen{animation:in .22s ease-out}@keyframes in{from{opacity:.4;transform:translateX(8px)}to{opacity:1;transform:none}}}
+</style>
+</head>
+<body>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></symbol>
+  <symbol id="i-list" viewBox="0 0 24 24"><path d="M9 6h12M9 12h12M9 18h12M4 6h.01M4 12h.01M4 18h.01"/></symbol>
+  <symbol id="i-chart" viewBox="0 0 24 24"><path d="M3 20h18M6 16v-4M11 16V7M16 16v-6M20 16V4"/></symbol>
+  <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/></symbol>
+  <symbol id="i-bowtie" viewBox="0 0 24 24"><path d="M10 12L3 7.5v9zM14 12l7-4.5v9z"/><rect x="10" y="10" width="4" height="4" rx="1"/></symbol>
+  <symbol id="i-bell" viewBox="0 0 24 24"><path d="M6 16v-5a6 6 0 1 1 12 0v5l2 2H4zM10 21h4"/></symbol>
+  <symbol id="i-user" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></symbol>
+  <symbol id="i-back" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></symbol>
+  <symbol id="i-chev" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></symbol>
+  <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></symbol>
+  <symbol id="i-shield" viewBox="0 0 24 24"><path d="M12 3l8 3v6c0 5-3.5 8-8 9-4.5-1-8-4-8-9V6z"/><path d="M8.5 12l2.5 2.5 4.5-4.5"/></symbol>
+  <symbol id="i-lock" viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></symbol>
+  <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+  <symbol id="i-alert" viewBox="0 0 24 24"><path d="M12 3.5l9.5 16.5h-19z"/><path d="M12 10v4.5M12 17.2h.01"/></symbol>
+  <symbol id="i-upload" viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5M4 20h16"/></symbol>
+  <symbol id="i-download" viewBox="0 0 24 24"><path d="M12 4v12M7 11l5 5 5-5M4 20h16"/></symbol>
+  <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="i-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.4a2.5 2.5 0 1 1 3.4 2.4c-.6.3-1 .8-1 1.5v.4M12 17h.01"/></symbol>
+  <symbol id="i-close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+  <symbol id="i-thumb" viewBox="0 0 24 24"><path d="M7 11v9H4v-9zM7 11l4-8c1.4 0 2.5 1.1 2.5 2.5V9h5.2a2 2 0 0 1 2 2.3l-1.1 6.9a2 2 0 0 1-2 1.8H7"/></symbol>
+  <symbol id="i-send" viewBox="0 0 24 24"><path d="M4 12l16-8-6 16-2.5-6.5z"/></symbol>
+  <symbol id="i-cart" viewBox="0 0 24 24"><path d="M3 4h2l2.4 11h11L21 7.5H6.2"/><circle cx="9" cy="19" r="1.5"/><circle cx="17" cy="19" r="1.5"/></symbol>
+  <symbol id="i-bag" viewBox="0 0 24 24"><path d="M5 8h14l-1 12H6zM9 8V6.5a3 3 0 0 1 6 0V8"/></symbol>
+  <symbol id="i-car" viewBox="0 0 24 24"><path d="M4 16v-4.5L6.2 6h11.6L20 11.5V16zM4 16v3M20 16v3M4 11.5h16"/><circle cx="8" cy="14" r=".6"/><circle cx="16" cy="14" r=".6"/></symbol>
+  <symbol id="i-ticket" viewBox="0 0 24 24"><path d="M4 7h16v3a2 2 0 0 0 0 4v3H4v-3a2 2 0 0 0 0-4z"/><path d="M14 7v10" stroke-dasharray="2 2"/></symbol>
+  <symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 20s-7.5-4.6-7.5-10.2A4.2 4.2 0 0 1 12 7.2a4.2 4.2 0 0 1 7.5 2.6C19.5 15.4 12 20 12 20z"/></symbol>
+  <symbol id="i-repeat" viewBox="0 0 24 24"><path d="M17 2.5l3 3-3 3M4 11V9.5a4 4 0 0 1 4-4h12M7 21.5l-3-3 3-3M20 13v1.5a4 4 0 0 1-4 4H4"/></symbol>
+  <symbol id="i-dots" viewBox="0 0 24 24"><path d="M6 12h.01M12 12h.01M18 12h.01" stroke-width="3"/></symbol>
+  <symbol id="i-cash" viewBox="0 0 24 24"><rect x="3" y="6" width="18" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/></symbol>
+  <symbol id="i-file" viewBox="0 0 24 24"><path d="M14 3H6.5A1.5 1.5 0 0 0 5 4.5v15A1.5 1.5 0 0 0 6.5 21h11a1.5 1.5 0 0 0 1.5-1.5V8z"/><path d="M14 3v5h5M8.5 13h7M8.5 16.5h5"/></symbol>
+  <symbol id="i-spark" viewBox="0 0 24 24"><path d="M12 3l1.9 5.1L19 10l-5.1 1.9L12 17l-1.9-5.1L5 10l5.1-1.9zM19 16l.8 2.2L22 19l-2.2.8L19 22l-.8-2.2L16 19l2.2-.8z"/></symbol>
+  <symbol id="i-bank" viewBox="0 0 24 24"><path d="M3 10l9-6 9 6M5 10v8M9.5 10v8M14.5 10v8M19 10v8M3 20.5h18"/></symbol>
+  <symbol id="i-book" viewBox="0 0 24 24"><path d="M4 5.5A2.5 2.5 0 0 1 6.5 3H20v15H6.5A2.5 2.5 0 0 0 4 20.5zM4 20.5A2.5 2.5 0 0 0 6.5 23H20v-5"/></symbol>
+  <symbol id="i-chat" viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/></symbol>
+  <symbol id="i-logout" viewBox="0 0 24 24"><path d="M15 4h4v16h-4M10 8l-4 4 4 4M6 12h10"/></symbol>
+  <symbol id="i-filter" viewBox="0 0 24 24"><path d="M4 6h16M7 12h10M10 18h4"/></symbol>
+</svg>
+
+<div class="stage">
+  <nav class="guide" aria-label="Telas do protótipo">
+    <h1>Mordomo Financeiro</h1>
+    <p>Protótipo navegável de alta fidelidade · Fase 2. Toque nos elementos da tela ou escolha uma etapa abaixo.</p>
+    <h2>Fluxo 1 · Sofia</h2>
+    <ol>
+      <li><a href="#boasvindas"><span>01</span>Boas-vindas</a></li>
+      <li><a href="#cadastro"><span>02</span>Cadastro</a></li>
+      <li><a href="#conectar"><span>03</span>Conectar banco</a></li>
+      <li><a href="#sincronizando"><span>04</span>Sincronização</a></li>
+      <li><a href="#inicio"><span>05</span>Resumo do mês</a></li>
+      <li><a href="#alerta"><span>06</span>Alerta de gasto</a></li>
+      <li><a href="#comparativo"><span>07</span>Comparativo mensal</a></li>
+    </ol>
+    <h2>Fluxo 2 · Renata</h2>
+    <ol>
+      <li><a href="#importar"><span>08</span>Importar planilha</a></li>
+      <li><a href="#novameta"><span>09</span>Nova meta</a></li>
+      <li><a href="#metas"><span>10</span>Metas</a></li>
+      <li><a href="#painel"><span>11</span>Painel</a></li>
+      <li><a href="#mordomo"><span>12</span>Mordomo (insights)</a></li>
+      <li><a href="#exportar"><span>13</span>Exportar dados</a></li>
+    </ol>
+    <h2>Telas de apoio</h2>
+    <ol>
+      <li><a href="#transacoes"><span>14</span>Transações</a></li>
+      <li><a href="#perfil"><span>15</span>Perfil e privacidade</a></li>
+      <li><a href="#ajuda"><span>16</span>Ajuda e tutoriais</a></li>
+    </ol>
+  </nav>
+
+  <div class="phone" id="phone">
+
+    <section class="screen" id="s-boasvindas" hidden>
+      <div class="status"><span class="num">9:41</span><span class="ic"><i style="width:17px;height:10px"></i><i style="width:24px;height:11px;border-radius:3px"></i></span></div>
+      <div class="scroll" style="justify-content:space-between;padding-top:40px">
+        <div class="stack" style="gap:26px">
+          <div class="hero-mark"><svg class="i"><use href="#i-bowtie"/></svg></div>
+          <div class="stack" style="gap:12px">
+            <p class="eyebrow">Mordomo Financeiro</p>
+            <h1 class="display" style="font-size:36px">Boa noite. Eu cuido das suas finanças.</h1>
+            <p class="lead" style="font-size:16px">Registro seus gastos sozinho, explico para onde o dinheiro foi e aviso antes que o mês aperte.</p>
+          </div>
+          <div class="promises">
+            <div><svg class="i sm"><use href="#i-check"/></svg>Sem planilha e sem digitar gastos</div>
+            <div><svg class="i sm"><use href="#i-check"/></svg>Conexão com o banco só de leitura</div>
+            <div><svg class="i sm"><use href="#i-check"/></svg>Alertas em linguagem simples</div>
+          </div>
+        </div>
+        <div class="stack">
+          <button class="btn primary" data-go="cadastro">Começar</button>
+          <button class="btn ghost" data-go="inicio">Já tenho conta</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen" id="s-cadastro" hidden>
+      <div class="status"><span class="num">9:41</span><span class="ic"><i style="width:17px;height:10px"></i><i style="width:24px;height:11px;border-radius:3px"></i></span></div>
+      <div class="scroll">
+        <div class="topbar"><button class="iconbtn" data-go="boasvindas" aria-label="Voltar"><svg class="i"><use href="#i-back"/></svg></button><h1>Etapa 1 de 3</h1></div>
+        <div class="steps"><i class="on"></i><i></i><i></i></div>
+        <div class="stack" style="gap:8px">
+          <h2 class="display">Como posso chamar você?</h2>
+          <p class="lead">São só três etapas. Se precisar parar, seu progresso fica salvo.</p>
+        </div>
+        <div class="field"><label for="f-nome">Nome</label><div class="in"><input id="f-nome" value="Sofia Martins"></div></div>
+        <div class="field"><label for="f-email">E-mail</label><div class="in"><input id="f-email" value="sofia.martins@email.com"></div></div>
+        <div class="field"><label for="f-senha">Senha</label><div class="in"><input id="f-senha" type="password" value="exemplo-senha"><svg class="i sm" style="color:var(--muted)"><use href="#i-eye"/></svg></div><span class="hint">Senha forte: 12 caracteres, letras e números</span></div>
+        <div class="check"><span class="box"><svg class="i xs"><use href="#i-check"/></svg></span><span>Li e aceito os termos de uso e a política de privacidade (LGPD).</span></div>
+        <div style="margin-top:auto" class="stack"><button class="btn primary" data-go="conectar">Continuar</button></div>
+      </div>
+    </section>
+
+    <section class="screen" id="s-conectar" hidden>
+      <div class="status"><span class="num">9:42</span><span class="ic"><i style="width:17px;height:10px"></i><i style="width:24px;height:11px;border-radius:3px"></i></span></div>
+      <div class="scroll">
+        <div class="topbar"><button class="iconbtn" data-go="cadastro" aria-label="Voltar"><svg class="i"><use href="#i-back"/></svg></button><h1>Etapa 2 de 3</h1></div>
+        <div class="steps"><i class="on"></i><i class="on"></i><i></i></div>
+        <div class="stack" style="gap:8px">
+          <h2 class="display">Conecte seu banco</h2>
+          <p class="lead">Com a conexão, eu registro cada gasto sozinho. Você não precisa digitar nada.</p>
+        </div>
+        <div class="card stack" style="gap:14px">
+          <div class="safe"><span class="ico"><svg class="i sm"><use href="#i-eye"/></svg></span><div><b>Somente leitura</b><span>Eu vejo as transações, mas não consigo mover seu dinheiro.</span></div></div>
+          <div class="safe"><span class="ico"><svg class="i sm"><use href="#i-shield"/></svg></span><div><b>Open Finance, regulado pelo Banco Central</b><span>A autorização acontece no app do seu banco.</span></div></div>
+          <div class="safe"><span class="ico"><svg class="i sm"><use href="#i-lock"/></svg></span><div><b>Você decide até quando</b><span>Revogue o acesso a qualquer momento em Perfil.</span></div></div>
+        </div>
+        <div class="field"><div class="in"><svg class="i sm" style="color:var(--muted)"><use href="#i-search"/></svg><input id="f-banco" placeholder="Buscar banco" aria-label="Buscar banco"></div></div>
+        <div class="banks" id="banks"></div>
+        <div class="stack" style="gap:4px">
+          <button class="btn primary" data-go="sincronizando" id="btn-conectar">Conectar Nubank</button>
+          <button class="btn ghost" data-go="importar">Prefiro importar uma planilha</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen" id="s-sincronizando" hidden>
+      <div class="status"><span class="num">9:43</span><span class="ic"><i style="width:17px;height:10px"></i><i style="width:24px;height:11px;border-radius:3px"></i></span></div>
+      <div class="scroll">
+        <div class="topbar"><h1>Etapa 3 de 3</h1></div>
+        <div class="steps"><i class="on"></i><i class="on"></i><i class="on"></i></div>
+        <div class="stack" style="gap:8px">
+          <h2 class="display">Organizando sua casa financeira</h2>
+          <p class="lead">Leva menos de um minuto. Pode fechar o app, eu aviso quando terminar.</p>
+        </div>
+        <div class="card stack" style="gap:16px">
+          <div class="row"><span class="seal" style="background:var(--sage)"><svg class="i sm"><use href="#i-check"/></svg></span><div class="grow"><b>Autorização recebida</b><div class="lead" style="font-size:13px">Nubank · conta e cartão</div></div></div>
+          <div class="row"><span class="seal" style="background:var(--sage)"><svg class="i sm"><use href="#i-check"/></svg></span><div class="grow"><b>Transações dos últimos 90 dias</b><div class="lead num" style="font-size:13px">312 de 312 lidas</div></div></div>
+          <div class="row"><span class="seal"><svg class="i sm"><use href="#i-spark"/></svg></span><div class="grow"><b>Separando por categoria</b><div class="lead num" style="font-size:13px">214 de 312 organizadas</div></div></div>
+          <div class="bar"><i style="width:69%"></i></div>
+          <div class="row" style="justify-content:space-between;font-size:12.5px;color:var(--muted)"><span class="num">69% concluído</span><span>cerca de 20 s</span></div>
+        </div>
+        <div class="mordomo"><div class="who"><span class="seal"><svg class="i sm"><use href="#i-bowtie"/></svg></span><div><b>Sebastião</b><small>seu mordomo</small></div></div><p>Já percebi que você pede bastante delivery à noite. Amanhã eu mostro os detalhes.</p></div>
+        <div style="margin-top:auto"><button class="btn primary" data-go="inicio">Ver meu resumo</button></div>
+      </div>
+    </section>
+
+    <section class="screen" id="s-inicio" hidden>
+      <div class="status"><span class="num">21:14</span><span class="ic"><i style="width:17px;height:10px"></i><i style="width:24px;height:11px;border-radius:3px"></i></span></div>
+      <div class="scroll">
+        <div class="topbar">
+          <button class="avatar" data-go="perfil" aria-label="Perfil">SM</button>
+          <div class="grow"><div class="eyebrow">Domingo, 28 de setembro</div><div style="font-weight:600;font-size:17px">Boa noite, Sofia</div></div>
+          <button class="iconbtn" data-go="alerta" aria-label="Alertas, 1 novo"><svg class="i"><use href="#i-bell"/></svg><span class="dot"></span></button>
+        </div>
+        <div class="card stack" style="gap:10px;padding:20px">
+          <div class="eyebrow">Você ainda pode gastar</div>
+          <div class="num" style="font:600 40px/1 var(--f-display)">R$ 486<span style="font-size:24px">,00</span></div>
+          <div class="lead num" style="font-size:14px">cerca de <b style="color:var(--fg)">R$ 162 por dia</b> até 30/09</div>
+          <div class="bar" style="margin-top:6px"><i style="width:89.7%"></i></div>
+          <div class="row num" style="justify-content:space-between;font-size:12.5px;color:var(--muted)"><span>Gasto R$ 4.214</span><span>Orçamento R$ 4.700</span></div>
+        </div>
+        <div class="mordomo">
+          <div class="who"><span class="seal"><svg class="i sm"><use href="#i-bowtie"/></svg></span><div><b>Sebastião</b><small>há 12 min</small></div></div>
+          <p>Delivery passou do seu costume este mês. Separei uma sugestão simples para outubro.</p>
+          <button class="link" data-go="alerta" style="margin-top:10px;display:inline-flex;align-items:center;gap:4px">Ver alerta <svg class="i xs"><use href="#i-chev"/></svg></button>
+        </div>
+        <div class="stack" style="gap:6px">
+          <h3 class="h2">Para onde foi o dinheiro <a href="#comparativo">Comparar com agosto</a></h3>
+          <div class="list" id="cats-inicio"></div>
+        </div>
+        <div class="stack" style="gap:6px">
+          <h3 class="h2">Últimos gastos <a href="#transacoes">Ver todos</a></h3>
+          <div class="list" id="tx-inicio"></div>
+        </div>
+      </div>
+      <nav class="tabbar" data-tab="inicio"></nav>
+    </section>
+
+    <section class="screen" id="s-alerta" hidden>
+      <div class="status"><span class="num">21:15</span><span class="ic"><i style="width:17px;height:10px"></i><i style="width:24px;height:11px;border-radius:3px"></i></span></div>
+      <div class="scroll">
+        <div class="topbar"><button class="iconbtn" data-go="inicio" aria-label="Voltar"><svg class="i"><use href="#i-back"/></svg></button><h1>Alerta</h1></div>
+        <span class="chip alert" style="align-self:flex-start"><svg class="i xs"><use href="#i-alert"/></svg>Gasto fora do padrão</span>
+        <h2 class="display">Delivery está 65% acima do seu costume</h2>
+        <div class="kpis">
+          <div class="kpi"><div class="l">Setembro até hoje</div><div class="n down">R$ 412</div><div class="d lead">9 pedidos</div></div>
+          <div class="kpi"><div class="l">Sua média (3 meses)</div><div class="n">R$ 250</div><div class="d lead">5 pedidos/mês</div></div>
+        </div>
+        <div class="card" style="padding:16px 14px 10px">
+          <svg class="chart" viewBox="0 0 320 150" width="100%" role="img" aria-label="Gasto semanal com delivery em setembro">
+            <line x1="20" y1="120" x2="310" y2="120" stroke="var(--line)"/>
+            <line x1="20" y1="78.1" x2="310" y2="78.1" stroke="var(--sage)" stroke-dasharray="4 4"/>
+            <line x1="20" y1="10" x2="40" y2="10" stroke="var(--sage)" stroke-dasharray="4 4"/><text x="46" y="14" style="fill:var(--sage)">sua média: R$ 62/sem.</text>
+            <rect x="38" y="60.9" width="44" height="59.1" rx="6" fill="var(--sky)" opacity=".7"/>
+            <rect x="108" y="50.2" width="44" height="69.8" rx="6" fill="var(--sky)" opacity=".7"/>
+            <rect x="178" y="72.3" width="44" height="47.7" rx="6" fill="var(--sky)" opacity=".7"/>
+            <rect x="248" y="20" width="44" height="100" rx="6" fill="var(--coral)"/>
+            <text x="60" y="54" text-anchor="middle">88</text><text x="130" y="44" text-anchor="middle">104</text><text x="200" y="66" text-anchor="middle">71</text><text x="270" y="14" text-anchor="middle" style="fill:var(--coral)">149</text>
+            <text x="60" y="138" text-anchor="middle">1ª sem.</text><text x="130" y="138" text-anchor="middle">2ª sem.</text><text x="200" y="138" text-anchor="middle">3ª sem.</text><text x="270" y="138" text-anchor="middle">4ª sem.</text>
+          </svg>
+        </div>
+        <div class="stack" style="gap:6px">
+          <h3 class="h2">Por que estou avisando</h3>
+          <p style="margin:0">Foram 9 pedidos em setembro, 4 deles depois das 22h. Nos três meses anteriores você fazia cerca de 5 por mês.</p>
+        </div>
+        <div class="mordomo"><div class="who"><span class="seal"><svg class="i sm"><use href="#i-bowtie"/></svg></span><div><b>Sugestão do Sebastião</b></div></div><p>Um limite de R$ 300 para delivery em outubro devolve cerca de R$ 110 ao seu mês. Eu aviso quando chegar a 80%.</p></div>
+        <div class="stack" style="gap:6px">
+          <button class="btn primary" data-act="limite">Criar limite de R$ 300</button>
+          <button class="btn secondary" data-go="inicio">Está tudo certo, foi pontual</button>
+          <button class="btn ghost" style="font-size:13.5px">Não avisar mais sobre delivery</button>
+        </div>
+      </div>
+      <div class="toast" id="toast-limite" hidden><svg class="i sm"><use href="#i-check"/></svg>Limite de R$ 300 criado<button data-act="desfazer">Desfazer</button></div>
+    </section>
+
+    <section class="screen" id="s-comparativo" hidden>
+      <div class="status"><span class="num">21:16</span><span class="ic"><i style="width:17px;height:10px"></i><i style="width:24px;height:11px;border-radius:3px"></i></span></div>
+      <div class="scroll">
+        <div class="topbar"><button class="iconbtn" data-go="inicio" aria-label="Voltar"><svg class="i"><use href="#i-back"/></svg></button><h1>Setembro × agosto</h1></div>
+        <div class="stack" style="gap:6px">
+          <span class="chip good" style="align-self:flex-start"><svg class="i xs"><use href="#i-check"/></svg>Segundo mês seguido no azul</span>
+          <h2 class="display">Você gastou R$ 620 a menos que em agosto</h2>
+          <p class="lead">Comparando os dois meses até o dia 28.</p>
+        </div>
+        <div class="card" style="padding:16px 14px 12px">
+          <div class="legend" style="margin-bottom:10px"><span><i style="background:var(--faint)"></i>Agosto</span><span><i style="background:var(--brass)"></i>Setembro</span></div>
+          <svg class="chart" viewBox="0 0 320 262" width="100%" id="cmp-chart" role="img" aria-label="Gasto por categoria em agosto e setembro"></svg>
+        </div>
+        <div class="mordomo"><div class="who"><span class="seal"><svg class="i sm"><use href="#i-bowtie"/></svg></span><div><b>Sebastião</b></div></div><p>O que mais ajudou foi lazer: R$ 260 a menos. Se quiser, guardo esses R$ 620 na sua reserva agora.</p></div>
+        <div class="stack" style="gap:6px"><button class="btn primary">Guardar R$ 620 na reserva</button><button class="btn ghost" data-go="inicio">Agora não</button></div>
+      </div>
+    </section>
+
+    <section class="screen" id="s-importar" hidden>
+      <div class="status"><span class="num">8:02</span><span class="ic"><i style="width:17px;height:10px"></i><i style="width:24px;height:11px;border-radius:3px"></i></span></div>
+      <div class="scroll">
+        <div class="topbar"><button class="iconbtn" data-go="conectar" aria-label="Voltar"><svg class="i"><use href="#i-back"/></svg></button><h1>Importar planilha</h1></div>
+        <div class="stepper"><span class="row done" style="gap:6px"><b><svg class="i xs"><use href="#i-check"/></svg></b>Arquivo</span><hr><span class="row done" style="gap:6px"><b><svg class="i xs"><use href="#i-check"/></svg></b>Colunas</span><hr><span class="row cur" style="gap:6px"><b>3</b>Validação</span></div>
+        <div class="card row" style="padding:14px">
+          <span class="cat" style="background:rgba(136,203,168,.14);color:var(--sage)"><svg class="i"><use href="#i-file"/></svg></span>
+          <div class="grow"><b style="display:block;font-size:14.5px">financas_2023-2026.xlsx</b><span class="lead num" style="font-size:12.5px">1.284 linhas · 4 colunas reconhecidas</span></div>
+        </div>
+        <div class="stack" style="gap:8px">
+          <h2 class="display" style="font-size:26px">1.281 linhas prontas. 3 precisam de você.</h2>
+          <p class="lead">Nada é gravado até você confirmar.</p>
+        </div>
+        <div class="card" style="padding:4px 16px">
+          <div class="valid"><span class="ln num">Linha 212</span><div><b>Data que não existe</b><span>Está <code>31/02/2024</code>. Quis dizer <code>29/02/2024</code>?</span></div></div>
+          <div class="valid"><span class="ln num">Linha 877</span><div><b>Valor com letra</b><span>Está <code>1.2OO,00</code> (letra O). Corrigir para <code>1.200,00</code>?</span></div></div>
+          <div class="valid"><span class="ln num">Linha 1.090</span><div><b>Possível duplicata</b><span>Igual à linha 1.089: Aluguel, 05/08/2026, R$ 2.300,00.</span></div></div>
+        </div>
+        <div class="stack" style="gap:6px">
+          <button class="btn primary" data-go="novameta">Aplicar as 3 sugestões e importar</button>
+          <button class="btn secondary">Importar 1.281 e revisar depois</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen" id="s-novameta" hidden>
+      <div class="status"><span class="num">8:10</span><span class="ic"><i style="width:17px;height:10px"></i><i style="width:24px;height:11px;border-radius:3px"></i></span></div>
+      <div class="scroll">
+        <div class="topbar"><button class="iconbtn" data-go="metas" aria-label="Cancelar"><svg class="i"><use href="#i-close"/></svg></button><h1>Nova meta</h1><button class="link" data-go="metas">Salvar rascunho</button></div>
+        <div class="field"><label for="f-meta">Nome da meta</label><div class="in"><input id="f-meta" value="Troca de carro"></div></div>
+        <div class="kpis">
+          <div class="field"><label for="f-valor">Valor alvo</label><div class="in"><input id="f-valor" class="num" value="R$ 45.000"></div></div>
+          <div class="field"><label for="f-prazo">Prazo</label><div class="in"><input id="f-prazo" value="dez/2028"></div></div>
+        </div>
+        <div class="card stack" style="gap:8px">
+          <div class="row" style="justify-content:space-between"><span class="eyebrow">Aporte mensal necessário</span><span class="chip brass">27 meses</span></div>
+          <div class="num" style="font:600 30px/1.1 var(--f-display)">R$ 1.667<span class="lead" style="font:400 15px var(--f-body)"> /mês</span></div>
+          <svg class="chart" viewBox="0 0 320 130" width="100%" role="img" aria-label="Projeção da meta até dezembro de 2028">
+            <line x1="30" y1="20" x2="310" y2="20" stroke="var(--line)" stroke-dasharray="3 4"/>
+            <text x="30" y="14">R$ 45 mil</text>
+            <line x1="30" y1="110" x2="310" y2="110" stroke="var(--line)"/>
+            <path d="M30 110 L310 20 L310 110 Z" fill="var(--brass)" opacity=".12"/>
+            <path d="M30 110 L310 20" stroke="var(--brass)" stroke-width="2.5" fill="none"/>
+            <circle cx="310" cy="20" r="4.5" fill="var(--brass)"/>
+            <text x="30" y="126">out/26</text><text x="165" y="126" text-anchor="middle">out/27</text><text x="310" y="126" text-anchor="end">dez/28</text>
+          </svg>
+        </div>
+        <div class="mordomo"><div class="who"><span class="seal"><svg class="i sm"><use href="#i-bowtie"/></svg></span><div><b>Impacto nas outras metas</b></div></div><p>Com R$ 1.667 por mês, a Reserva de emergência atrasa 2 meses (de ago/27 para out/27). Quer que eu divida o valor entre as duas?</p></div>
+        <div class="stack" style="gap:6px"><button class="btn primary" data-go="metas">Salvar meta</button><button class="btn secondary">Dividir com a reserva</button></div>
+      </div>
+    </section>
+
+    <section class="screen" id="s-metas" hidden>
+      <div class="status"><span class="num">8:11</span><span class="ic"><i style="width:17px;height:10px"></i><i style="width:24px;height:11px;border-radius:3px"></i></span></div>
+      <div class="scroll">
+        <div class="topbar"><h1 style="font:600 26px var(--f-display)">Metas</h1><button class="iconbtn" data-go="novameta" aria-label="Nova meta"><svg class="i"><use href="#i-plus"/></svg></button></div>
+        <div class="card row" style="gap:14px">
+          <div class="grow"><div class="eyebrow">Guardado em todas as metas</div><div class="num" style="font:600 26px/1.2 var(--f-display)">R$ 24.600</div></div>
+          <span class="chip good">+R$ 4.000 em set.</span>
+        </div>
+        <div class="stack" id="metas-list" style="gap:10px"></div>
+        <button class="btn secondary" data-go="novameta"><svg class="i sm"><use href="#i-plus"/></svg>Nova meta</button>
+      </div>
+      <nav class="tabbar" data-tab="metas"></nav>
+    </section>
+
+    <section class="screen" id="s-painel" hidden>
+      <div class="status"><span class="num">8:30</span><span class="ic"><i style="width:17px;height:10px"></i><i style="width:24px;height:11px;border-radius:3px"></i></span></div>
+      <div class="scroll">
+        <div class="topbar"><div class="grow"><h1 style="font:600 26px var(--f-display)">Painel</h1><div class="lead" style="font-size:12.5px">Atualizado agora · Renata Costa</div></div><button class="iconbtn" data-go="exportar" aria-label="Exportar dados"><svg class="i"><use href="#i-download"/></svg></button></div>
+        <div class="seg" role="group" aria-label="Período"><button aria-pressed="true">Semana</button><button aria-pressed="false">Mês</button><button aria-pressed="false">Ano</button></div>
+        <div class="lead num" style="font-size:13px;margin-top:-6px">Semana 39 · 22 a 28 de setembro</div>
+        <div class="kpis">
+          <div class="kpi"><div class="l">Taxa de poupança</div><div class="n">31%</div><div class="d up">+4 p.p. vs. média</div></div>
+          <div class="kpi"><div class="l">Gasto na semana</div><div class="n">R$ 1.126</div><div class="d up">−8% vs. média</div></div>
+          <div class="kpi"><div class="l">Investido</div><div class="n">R$ 84,3 mil</div><div class="d up">+R$ 3,3 mil no mês</div></div>
+          <div class="kpi"><div class="l">Metas no prazo</div><div class="n">2 de 3</div><div class="d down">Viagem 1 mês atrasada</div></div>
+        </div>
+        <div class="card" style="padding:16px 14px 10px">
+          <h3 class="h2" style="margin-bottom:8px">Patrimônio investido · real e projeção</h3>
+          <svg class="chart" viewBox="0 0 320 170" width="100%" id="proj-chart" role="img" aria-label="Patrimônio investido de abril de 2026 a março de 2027"></svg>
+          <div class="legend"><span><i style="background:var(--sky)"></i>Real</span><span><i style="background:transparent;border:1.5px dashed var(--brass)"></i>Projeção com R$ 2.500/mês</span></div>
+        </div>
+        <div class="card" style="padding:16px">
+          <h3 class="h2" style="margin-bottom:10px">Gasto por categoria · semana</h3>
+          <div class="stack" id="cat-week" style="gap:10px"></div>
+        </div>
+      </div>
+      <nav class="tabbar" data-tab="painel"></nav>
+    </section>
+
+    <section class="screen" id="s-mordomo" hidden>
+      <div class="status"><span class="num">8:34</span><span class="ic"><i style="width:17px;height:10px"></i><i style="width:24px;height:11px;border-radius:3px"></i></span></div>
+      <div class="scroll" style="gap:14px">
+        <div class="topbar"><span class="seal" style="width:40px;height:40px"><svg class="i"><use href="#i-bowtie"/></svg></span><div class="grow"><div style="font-weight:600;font-size:17px">Sebastião</div><div class="lead" style="font-size:12.5px">Seu mordomo financeiro</div></div></div>
+        <div class="insight">
+          <span class="chip brass" style="align-self:flex-start"><svg class="i xs"><use href="#i-spark"/></svg>Onde cortar</span>
+          <h3>Assinaturas somam R$ 147,60 por mês, 11% a mais que em 2025.</h3>
+          <div class="why">Encontrei 6 débitos que se repetem todo mês com o mesmo valor. Dois são serviços de vídeo com catálogo parecido.</div>
+          <div class="acts"><button class="mini b">Ver assinaturas</button><span class="grow"></span><button class="mini" aria-label="Útil"><svg class="i xs"><use href="#i-thumb"/></svg></button><button class="mini" aria-label="Não útil" style="transform:scaleY(-1)"><svg class="i xs"><use href="#i-thumb"/></svg></button></div>
+        </div>
+        <div class="insight">
+          <span class="chip brass" style="align-self:flex-start"><svg class="i xs"><use href="#i-spark"/></svg>Padrão de consumo</span>
+          <h3>Mercado aos sábados sai 18% mais caro que nas quartas.</h3>
+          <div class="why">Comparei 24 compras dos últimos 6 meses. Aos sábados você compra mais itens prontos.</div>
+        </div>
+        <div class="bubble me">Quanto consigo investir em outubro?</div>
+        <div class="bubble bot">Se outubro repetir a média dos últimos 3 meses, sobram R$ 2.740. Sugiro investir R$ 2.500 e deixar R$ 240 de folga.</div>
+        <p class="lead" style="font-size:11.5px;text-align:center;margin:0">Sugestões educativas geradas por IA. Não são recomendação de investimento.</p>
+      </div>
+      <div class="composer"><div class="in">Pergunte ao Sebastião…</div><button class="send" aria-label="Enviar"><svg class="i sm"><use href="#i-send"/></svg></button></div>
+      <nav class="tabbar" data-tab="mordomo"></nav>
+    </section>
+
+    <section class="screen" id="s-exportar" hidden>
+      <div class="status"><span class="num">8:36</span><span class="ic"><i style="width:17px;height:10px"></i><i style="width:24px;height:11px;border-radius:3px"></i></span></div>
+      <div class="scroll">
+        <div class="topbar"><button class="iconbtn" data-go="painel" aria-label="Voltar"><svg class="i"><use href="#i-back"/></svg></button><h1>Exportar dados</h1></div>
+        <div class="stack" style="gap:8px"><h2 class="display">Leve seus dados para onde quiser</h2><p class="lead">Todas as transações, categorias e metas, no mesmo nível de detalhe do app.</p></div>
+        <div class="stack" style="gap:8px">
+          <h3 class="h2">Formato</h3>
+          <button class="opt" aria-pressed="true" data-opt="fmt"><span class="r"></span><div class="grow"><b>Planilha Excel (.xlsx)</b><div class="lead" style="font-size:12.5px">Uma aba por conta e uma de metas</div></div></button>
+          <button class="opt" aria-pressed="false" data-opt="fmt"><span class="r"></span><div class="grow"><b>CSV</b><div class="lead" style="font-size:12.5px">Para outras ferramentas de análise</div></div></button>
+          <button class="opt" aria-pressed="false" data-opt="fmt"><span class="r"></span><div class="grow"><b>Relatório em PDF</b><div class="lead" style="font-size:12.5px">Resumo mensal com gráficos</div></div></button>
+        </div>
+        <div class="stack" style="gap:8px">
+          <h3 class="h2">Período</h3>
+          <div class="chips"><span class="chip">Este mês</span><span class="chip">12 meses</span><span class="chip on">Tudo (jan/2023 a set/2026)</span></div>
+        </div>
+        <div style="margin-top:auto" class="stack"><button class="btn primary" data-act="exportar"><svg class="i sm"><use href="#i-download"/></svg>Gerar arquivo</button></div>
+      </div>
+      <div class="toast" id="toast-exportar" hidden><svg class="i sm"><use href="#i-check"/></svg>Arquivo pronto: 3.912 transações<button>Abrir</button></div>
+    </section>
+
+    <section class="screen" id="s-transacoes" hidden>
+      <div class="status"><span class="num">21:18</span><span class="ic"><i style="width:17px;height:10px"></i><i style="width:24px;height:11px;border-radius:3px"></i></span></div>
+      <div class="scroll" style="gap:14px">
+        <div class="topbar"><h1 style="font:600 26px var(--f-display)">Transações</h1><button class="iconbtn" aria-label="Adicionar gasto em dinheiro"><svg class="i"><use href="#i-plus"/></svg></button></div>
+        <div class="field"><div class="in"><svg class="i sm" style="color:var(--muted)"><use href="#i-search"/></svg><input id="f-busca" placeholder="Buscar por nome ou valor" aria-label="Buscar transações"></div></div>
+        <div class="chips"><span class="chip on">Tudo</span><span class="chip">Saídas</span><span class="chip">Entradas</span><span class="chip">Delivery</span><span class="chip">Mercado</span><span class="chip">Transporte</span></div>
+        <div class="lead" style="font-size:12.5px;display:flex;gap:6px;align-items:center"><svg class="i xs" style="color:var(--sage)"><use href="#i-check"/></svg>Sincronizado há 3 min · Nubank</div>
+        <div id="tx-all" class="stack" style="gap:4px"></div>
+      </div>
+      <nav class="tabbar" data-tab="transacoes"></nav>
+    </section>
+
+    <section class="screen" id="s-perfil" hidden>
+      <div class="status"><span class="num">21:20</span><span class="ic"><i style="width:17px;height:10px"></i><i style="width:24px;height:11px;border-radius:3px"></i></span></div>
+      <div class="scroll">
+        <div class="topbar"><button class="iconbtn" data-go="inicio" aria-label="Voltar"><svg class="i"><use href="#i-back"/></svg></button><h1>Perfil</h1></div>
+        <div class="row" style="gap:14px"><span class="avatar" style="width:56px;height:56px;font-size:18px">SM</span><div><div style="font-weight:600;font-size:18px">Sofia Martins</div><div class="lead" style="font-size:13px">sofia.martins@email.com</div></div></div>
+        <div class="stack" style="gap:8px">
+          <h3 class="h2">Contas conectadas</h3>
+          <div class="menu">
+            <div class="mi"><span class="bank" style="padding:0;background:none"><span class="lg" style="background:#7A2FCF;width:38px;height:38px">Nu</span></span><div class="mi-t"><b>Nubank</b><span>Conta e cartão · autorizado até 16/09/2027</span></div><button class="mini" data-act="revogar" style="width:auto;border:0;padding:0 12px;color:var(--coral)">Revogar</button></div>
+            <button data-go="conectar"><svg class="i" style="color:var(--brass)"><use href="#i-plus"/></svg><div class="mi-t"><b style="color:var(--brass)">Conectar outro banco</b></div></button>
+          </div>
+        </div>
+        <div class="stack" style="gap:8px">
+          <h3 class="h2">Seus dados</h3>
+          <div class="menu">
+            <button data-go="importar"><svg class="i"><use href="#i-upload"/></svg><div class="mi-t"><b>Importar planilha</b><span>XLSX ou CSV</span></div><svg class="i sm" style="color:var(--faint)"><use href="#i-chev"/></svg></button>
+            <button data-go="exportar"><svg class="i"><use href="#i-download"/></svg><div class="mi-t"><b>Exportar meus dados</b><span>XLSX, CSV ou PDF</span></div><svg class="i sm" style="color:var(--faint)"><use href="#i-chev"/></svg></button>
+            <button><svg class="i"><use href="#i-bell"/></svg><div class="mi-t"><b>Notificações</b><span>Alertas de gasto e resumo diário às 21h</span></div><svg class="i sm" style="color:var(--faint)"><use href="#i-chev"/></svg></button>
+            <button><svg class="i"><use href="#i-shield"/></svg><div class="mi-t"><b>Privacidade e LGPD</b><span>Ver, baixar ou excluir seus dados</span></div><svg class="i sm" style="color:var(--faint)"><use href="#i-chev"/></svg></button>
+            <button data-go="ajuda"><svg class="i"><use href="#i-help"/></svg><div class="mi-t"><b>Ajuda e tutoriais</b><span>Básico e avançado</span></div><svg class="i sm" style="color:var(--faint)"><use href="#i-chev"/></svg></button>
+          </div>
+        </div>
+        <button class="btn ghost" data-go="boasvindas"><svg class="i sm"><use href="#i-logout"/></svg>Sair</button>
+      </div>
+      <div class="sheet-bg" id="sheet-revogar" hidden>
+        <div class="sheet" role="dialog" aria-labelledby="rv-t">
+          <span class="grab"></span>
+          <h2 id="rv-t">Revogar acesso ao Nubank?</h2>
+          <p class="lead" style="margin:0">Eu paro de registrar seus gastos automaticamente. O histórico que já está no app continua salvo.</p>
+          <button class="btn danger" data-act="fechar">Revogar acesso</button>
+          <button class="btn secondary" data-act="fechar">Cancelar</button>
+        </div>
+      </div>
+    </section>
+
+    <section class="screen" id="s-ajuda" hidden>
+      <div class="status"><span class="num">21:21</span><span class="ic"><i style="width:17px;height:10px"></i><i style="width:24px;height:11px;border-radius:3px"></i></span></div>
+      <div class="scroll">
+        <div class="topbar"><button class="iconbtn" data-go="perfil" aria-label="Voltar"><svg class="i"><use href="#i-back"/></svg></button><h1>Ajuda e tutoriais</h1></div>
+        <div class="field"><div class="in"><svg class="i sm" style="color:var(--muted)"><use href="#i-search"/></svg><input id="f-ajuda" placeholder="Como posso ajudar?" aria-label="Buscar na ajuda"></div></div>
+        <div class="stack" style="gap:8px">
+          <h3 class="h2">Básico</h3>
+          <div class="menu">
+            <button><svg class="i"><use href="#i-book"/></svg><div class="mi-t"><b>Entendendo o resumo do mês</b><span>2 min</span></div><svg class="i sm" style="color:var(--faint)"><use href="#i-chev"/></svg></button>
+            <button><svg class="i"><use href="#i-book"/></svg><div class="mi-t"><b>Mudar a categoria de um gasto</b><span>1 min</span></div><svg class="i sm" style="color:var(--faint)"><use href="#i-chev"/></svg></button>
+            <button><svg class="i"><use href="#i-book"/></svg><div class="mi-t"><b>Como funcionam os alertas</b><span>2 min</span></div><svg class="i sm" style="color:var(--faint)"><use href="#i-chev"/></svg></button>
+          </div>
+        </div>
+        <div class="stack" style="gap:8px">
+          <h3 class="h2">Avançado</h3>
+          <div class="menu">
+            <button><svg class="i"><use href="#i-book"/></svg><div class="mi-t"><b>Importar uma planilha antiga</b><span>4 min</span></div><svg class="i sm" style="color:var(--faint)"><use href="#i-chev"/></svg></button>
+            <button><svg class="i"><use href="#i-book"/></svg><div class="mi-t"><b>Como a projeção de metas é calculada</b><span>5 min</span></div><svg class="i sm" style="color:var(--faint)"><use href="#i-chev"/></svg></button>
+          </div>
+        </div>
+        <button class="btn secondary"><svg class="i sm"><use href="#i-chat"/></svg>Falar com o suporte</button>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<script>
+(function(){
+  var fmt=function(v){return 'R$ '+v.toLocaleString('pt-BR',{minimumFractionDigits:2,maximumFractionDigits:2})};
+  var CAT={
+    Moradia:{i:'home',c:'#8AAFE8'},Mercado:{i:'cart',c:'#88CBA8'},Delivery:{i:'bag',c:'#F29479'},
+    Transporte:{i:'car',c:'#C7A6E8'},Lazer:{i:'ticket',c:'#E8C77A'},'Saúde':{i:'heart',c:'#E89AB8'},
+    Assinaturas:{i:'repeat',c:'#7FD1D1'},Outros:{i:'dots',c:'#A3AABA'},Salário:{i:'cash',c:'#88CBA8'},Restaurantes:{i:'bag',c:'#F29479'}
+  };
+  var icon=function(c,cls){var k=CAT[c]||CAT.Outros;return '<span class="cat" style="background:'+k.c+'22;color:'+k.c+'"><svg class="i '+(cls||'')+'"><use href="#i-'+k.i+'"/></svg></span>'};
+
+  var sep=[['Moradia',1650],['Mercado',820],['Delivery',412],['Transporte',310],['Lazer',280]];
+  document.getElementById('cats-inicio').innerHTML=sep.map(function(r){
+    var alert=r[0]==='Delivery'?' <span class="chip alert" style="height:22px;padding:0 8px;font-size:11px">acima do costume</span>':'';
+    return '<div class="item">'+icon(r[0])+'<div class="grow"><div class="t">'+r[0]+alert+'</div><div class="bar" style="height:5px;margin-top:6px"><i style="width:'+(r[1]/1650*100)+'%;background:'+CAT[r[0]].c+'"></i></div></div><div class="v">'+fmt(r[1]).replace(',00','')+'</div></div>';
+  }).join('');
+
+  var tx=[
+    ['Hoje',[['iFood','Delivery','21:02',-58.9],['Uber','Transporte','18:40',-23.4],['Farmácia','Saúde','11:15',-46.2]]],
+    ['Ontem · 27 set',[['Supermercado','Mercado','17:30',-212.35],['Cinema','Lazer','20:10',-64],['iFood','Delivery','23:05',-49.9]]],
+    ['26 set',[['Streaming de música','Assinaturas','06:00',-21.9],['Posto de combustível','Transporte','08:12',-150],['Padaria','Mercado','08:30',-18.6]]],
+    ['25 set',[['Salário · Agência','Salário','00:01',5800]]]
+  ];
+  var txRow=function(r){return '<div class="item">'+icon(r[1])+'<div class="grow"><div class="t">'+r[0]+'</div><div class="s">'+r[1]+' · '+r[2]+'</div></div><div class="v'+(r[3]>0?' in':'')+'">'+(r[3]>0?'+ ':'− ')+fmt(Math.abs(r[3]))+'</div></div>'};
+  document.getElementById('tx-inicio').innerHTML=tx[0][1].map(txRow).join('');
+  document.getElementById('tx-all').innerHTML=tx.map(function(g){return '<div class="eyebrow" style="margin-top:8px">'+g[0]+'</div><div class="list">'+g[1].map(txRow).join('')+'</div>'}).join('');
+
+  var cmp=[['Moradia',1650,1650],['Mercado',910,820],['Delivery',290,412],['Transporte',360,310],['Lazer',540,280],['Saúde',230,190],['Assinaturas',148,148],['Outros',706,404]];
+  var s='',x0=92,w=200,y=4;
+  cmp.forEach(function(r,i){
+    var yy=y+i*32,a=r[1]/1650*w,b=r[2]/1650*w,d=r[2]-r[1];
+    s+='<text x="0" y="'+(yy+14)+'" style="fill:var(--fg)">'+r[0]+'</text>';
+    s+='<rect x="'+x0+'" y="'+yy+'" width="'+a+'" height="9" rx="3" fill="var(--faint)"/>';
+    s+='<rect x="'+x0+'" y="'+(yy+11)+'" width="'+b+'" height="9" rx="3" fill="var(--brass)"/>';
+    s+='<text x="320" y="'+(yy+14)+'" text-anchor="end" style="fill:'+(d>0?'var(--coral)':d<0?'var(--sage)':'var(--muted)')+'">'+(d>0?'+':d<0?'−':'')+(d===0?'=':Math.abs(d))+'</text>';
+  });
+  document.getElementById('cmp-chart').innerHTML=s;
+
+  var real=[70.1,72.4,74.9,77.8,81.0,84.3],proj=[84.3,86.8,89.3,91.8,94.3,96.8,99.3];
+  var labels=['abr','mai','jun','jul','ago','set','out','nov','dez','jan','fev','mar'];
+  var X=function(i){return 34+i*25},Y=function(v){return 140-(v-65)/40*125};
+  var p='';
+  [70,80,90,100].forEach(function(v){p+='<line x1="34" x2="314" y1="'+Y(v)+'" y2="'+Y(v)+'" stroke="var(--line)"/><text x="0" y="'+(Y(v)+4)+'">'+v+' mil</text>'});
+  p+='<path d="M'+real.map(function(v,i){return X(i)+' '+Y(v)}).join(' L')+' L'+X(5)+' 140 L'+X(0)+' 140Z" fill="var(--sky)" opacity=".14"/>';
+  p+='<path d="M'+real.map(function(v,i){return X(i)+' '+Y(v)}).join(' L')+'" stroke="var(--sky)" stroke-width="2.5" fill="none"/>';
+  p+='<path d="M'+proj.map(function(v,i){return X(i+5)+' '+Y(v)}).join(' L')+'" stroke="var(--brass)" stroke-width="2" stroke-dasharray="5 4" fill="none"/>';
+  p+='<circle cx="'+X(5)+'" cy="'+Y(84.3)+'" r="4.5" fill="var(--sky)"/><circle cx="'+X(11)+'" cy="'+Y(99.3)+'" r="4" fill="var(--brass)"/>';
+  p+='<text x="'+(X(11))+'" y="'+(Y(99.3)-10)+'" text-anchor="end" style="fill:var(--brass)">99,3 mil</text>';
+  labels.forEach(function(l,i){if(i%2===1)p+='<text x="'+X(i)+'" y="160" text-anchor="middle">'+l+'</text>'});
+  document.getElementById('proj-chart').innerHTML=p;
+
+  var wk=[['Mercado',386],['Transporte',214],['Restaurantes',198],['Saúde',142],['Assinaturas',96],['Outros',90]];
+  document.getElementById('cat-week').innerHTML=wk.map(function(r){
+    return '<div><div class="row" style="justify-content:space-between;font-size:13.5px"><span>'+r[0]+'</span><span class="num">'+fmt(r[1]).replace(',00','')+'</span></div><div class="bar" style="height:6px;margin-top:5px"><i style="width:'+(r[1]/386*100)+'%;background:'+CAT[r[0]].c+'"></i></div></div>';
+  }).join('');
+
+  var metas=[
+    ['Reserva de emergência','R$ 18.400','R$ 30.000',61,'Previsão ago/2027 · R$ 1.000/mês','good','No prazo'],
+    ['Viagem para Lisboa','R$ 6.200','R$ 12.000',52,'Previsão ago/2027 · prazo jul/2027','alert','1 mês atrasada'],
+    ['Aporte mensal em investimentos','R$ 2.500','R$ 2.500',100,'Setembro concluído','good','Cumprida']
+  ];
+  document.getElementById('metas-list').innerHTML=metas.map(function(m){
+    return '<div class="card stack" style="gap:10px"><div class="row" style="justify-content:space-between;align-items:flex-start"><b style="font-size:16px">'+m[0]+'</b><span class="chip '+m[5]+'">'+m[6]+'</span></div><div class="num"><span style="font:600 22px var(--f-display)">'+m[1]+'</span><span class="lead"> de '+m[2]+'</span></div><div class="bar"><i style="width:'+m[3]+'%;background:'+(m[5]==='alert'?'var(--coral)':'var(--brass)')+'"></i></div><div class="lead" style="font-size:12.5px">'+m[4]+'</div></div>';
+  }).join('');
+
+  var banks=[['Nubank','Nu','#7A2FCF'],['Itaú','It','#E8701A'],['Banco do Brasil','BB','#2D5BD0'],['Bradesco','Br','#CC1F3A'],['Caixa','Cx','#1467B5'],['Inter','In','#F07A18']];
+  var bk=document.getElementById('banks');
+  bk.innerHTML=banks.map(function(b,i){return '<button class="bank" aria-pressed="'+(i===0)+'" data-bank="'+b[0]+'"><span class="lg" style="background:'+b[2]+'">'+b[1]+'</span>'+b[0]+'</button>'}).join('');
+  bk.addEventListener('click',function(e){var t=e.target.closest('.bank');if(!t)return;bk.querySelectorAll('.bank').forEach(function(b){b.setAttribute('aria-pressed',b===t)});document.getElementById('btn-conectar').textContent='Conectar '+t.dataset.bank});
+
+  var TABS=[['inicio','home','Início'],['transacoes','list','Transações'],['painel','chart','Painel'],['metas','target','Metas'],['mordomo','bowtie','Mordomo']];
+  document.querySelectorAll('.tabbar').forEach(function(n){
+    n.innerHTML=TABS.map(function(t){return '<button data-go="'+t[0]+'"'+(n.dataset.tab===t[0]?' aria-current="page"':'')+'><svg class="i"><use href="#i-'+t[1]+'"/></svg>'+t[2]+'</button>'}).join('');
+  });
+
+  var STATES={'alerta-limite':['alerta',function(){document.getElementById('toast-limite').hidden=false}],'perfil-revogar':['perfil',function(){document.getElementById('sheet-revogar').hidden=false}],'exportar-pronto':['exportar',function(){document.getElementById('toast-exportar').hidden=false}]};
+  var screens=[].slice.call(document.querySelectorAll('.screen'));
+  function show(token){
+    var st=STATES[token],id=st?st[0]:token;
+    if(!document.getElementById('s-'+id))id='boasvindas';
+    screens.forEach(function(s){s.hidden=s.id!=='s-'+id;s.querySelectorAll('.toast,.sheet-bg').forEach(function(o){o.hidden=true})});
+    var cur=document.getElementById('s-'+id);cur.querySelector('.scroll').scrollTop=0;
+    if(st)st[1]();
+    document.querySelectorAll('.guide a').forEach(function(a){a.setAttribute('aria-current',a.getAttribute('href')==='#'+id)});
+  }
+  function go(id){if(location.hash==='#'+id)show(id);else location.hash=id}
+  window.addEventListener('hashchange',function(){show(location.hash.slice(1))});
+  document.addEventListener('click',function(e){
+    var g=e.target.closest('[data-go]');if(g){e.preventDefault();go(g.dataset.go);return}
+    var a=e.target.closest('[data-act]');if(!a)return;
+    var act=a.dataset.act;
+    if(act==='limite')document.getElementById('toast-limite').hidden=false;
+    if(act==='desfazer')document.getElementById('toast-limite').hidden=true;
+    if(act==='revogar')document.getElementById('sheet-revogar').hidden=false;
+    if(act==='fechar')document.getElementById('sheet-revogar').hidden=true;
+    if(act==='exportar')document.getElementById('toast-exportar').hidden=false;
+  });
+  document.querySelectorAll('.opt[data-opt]').forEach(function(o){o.addEventListener('click',function(){document.querySelectorAll('.opt[data-opt="'+o.dataset.opt+'"]').forEach(function(x){x.setAttribute('aria-pressed',x===o)})})});
+  document.querySelectorAll('.seg').forEach(function(sg){sg.addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;sg.querySelectorAll('button').forEach(function(x){x.setAttribute('aria-pressed',x===b)})})});
+  show(location.hash.slice(1)||'boasvindas');
+})();
+</script>
+</body>
+</html>
